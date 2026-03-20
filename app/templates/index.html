@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager</title>
+</head>
+<body>
+
+<h1>Task Manager</h1>
+
+<form id="taskForm">
+    <input type="number" id="id" placeholder="Task ID" required>
+    <input type="text" id="title" placeholder="Task Title" required>
+    <button type="submit">Add Task</button>
+</form>
+
+<h2>Tasks</h2>
+<ul id="taskList"></ul>
+
+<script>
+async function loadTasks() {
+    const res = await fetch('/tasks');
+    const data = await res.json();
+
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    data.forEach(task => {
+        const li = document.createElement("li");
+
+li.innerHTML = `
+    ${task.id} - ${task.title} (${task.completed})
+    <button onclick="completeTask(${task.id})">Complete</button>
+    <button onclick="deleteTask(${task.id})">Delete</button>
+`;
+
+list.appendChild(li);
+});
+}
+async function completeTask(id) {
+    await fetch(`/tasks/${id}`, {
+        method: "PATCH"
+    });
+    loadTasks();
+}
+
+async function deleteTask(id) {
+    await fetch(`/tasks/${id}`, {
+        method: "DELETE"
+    });
+    loadTasks();
+}
+
+document.getElementById("taskForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById("id").value;
+    const title = document.getElementById("title").value;
+
+    await fetch('/tasks', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            id: parseInt(id),
+            title: title
+        })
+    });
+
+    loadTasks();
+});
+
+loadTasks();
+</script>
+
+</body>
+</html>
